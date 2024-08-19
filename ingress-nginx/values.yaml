@@ -1,0 +1,22 @@
+ingress:
+  controller:
+    kind: "DaemonSet"
+    nodeSelector:
+      ingress-ready: "true"
+      kubernetes.io/os: linux
+    hostNetwork: false
+    hostPort:
+      enabled: true
+      ports:
+        http: 80
+        https: 443
+    service:
+      enabled: false
+    watchIngressWithoutClass: true
+    admissionWebhooks:
+      enabled: false
+    config:
+      server-tokens: false
+      use-forwarded-headers: true
+      enable-underscores-in-headers: true
+      global-allowed-response-headers: "X-TEST"

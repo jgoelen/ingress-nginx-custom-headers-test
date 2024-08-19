@@ -1,0 +1,9 @@
+apiVersion: v2
+name: ingress-nginx
+description: Ingress Controller Helm Chart
+type: application
+version: 0.1.0
+dependencies:
+  - name: podinfo
+    version: "6.6.3"
+    repository: "https://stefanprodan.github.io/podinfo"
