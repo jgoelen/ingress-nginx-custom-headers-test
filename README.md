@@ -1,37 +1,39 @@
 # Ingress NGINX test setup
 
-This repository contains a local setup for testing [PR #11709](https://github.com/kubernetes/ingress-nginx/pull/11709) of the Ingress NGINX Controller project.
+This repository provides a local environment to test [PR #11709](https://github.com/kubernetes/ingress-nginx/pull/11709) for the Ingress NGINX Controller project.
 
 ## Requirements
 
-The following tools are required for running the scripts:
+To run the setup scripts, ensure the following tools are installed:
 
 - [Helm](https://helm.sh)
 - [Kind](https://kind.sigs.k8s.io)
+- make
+- curl
 
-## Getting started
+## Setup Instructions
 
-Create a new Kind cluster:
+1. Create a new Kind cluster
 
 ```bash
 ./001_setup_kind.sh
 ```
 
-Deploy the latest version of the ingress-nginx controller:
+2. Deploy ingress controller
 
 ```bash
 ./002_deploy_ingress.sh
 ```
 
-Deploy the podinfo application:
+3. Deploy Podinfo application
 
 ```bash
 ./003_deploy_podinfo.sh
 ```
 
-## Test 1 ✅
+## Test 1 ✅: Verify Initial Custom Header
 
-The podinfo-app uses a custom response header `X-TEST` and the initial value is `v01`. This can be verified with the following curl command:
+The Podinfo app uses a custom response header `X-TEST`, initially set to `v01`. You can confirm this by running the following curl command:
 
 ```bash
 curl -v -H "Host: podinfo.local" localhost:8001
@@ -70,15 +72,17 @@ curl -v -H "Host: podinfo.local" localhost:8001
 }
 ```
 
-# Test 2 🔥
+You should see X-TEST: v01 in the response headers 👆.
 
-Change the value of the header to `v02` in the ConfigMap [custom-security-headers-configmap.yaml](podinfo-app/templates/custom-security-headers-configmap.yaml) and redeploy the podinfo-app:
+# Test 2 🔥: Update Custom Header (Fails Initially)
+
+Update the header value to `v02` in the ConfigMap located at [custom-security-headers-configmap.yaml](podinfo-app/templates/custom-security-headers-configmap.yaml) and redeploy the podinfo app:
 
 ```bash
 ./003_deploy_podinfo.sh
 ```
 
-The following curl command does NOT show the new value:
+However, running the curl command again will still show X-TEST: v01 👇🏻:
 
 ```bash
 curl -v -H "Host: podinfo.local" localhost:8001
@@ -117,12 +121,15 @@ curl -v -H "Host: podinfo.local" localhost:8001
 }
 ```
 
-The update will only be applied after restarting the ingress controller:
+To apply the update, restart the ingress controller:
 
 ```bash
 ./004_restart_ingress.sh
-daemonset.apps/ingress-nginx-controller restarted
+```
 
+Now, re-run the curl command and verify that the header is updated to v02 👇🏻:
+
+```bash
 curl -v -H "Host: podinfo.local" localhost:8001                                                          
 * Host localhost:8001 was resolved.
 * IPv6: ::1
@@ -159,15 +166,17 @@ curl -v -H "Host: podinfo.local" localhost:8001
 }
 ```
 
-# Test 3 ✅
+# Test 3 ✅: Update Custom header (with fix)
 
-Upload the [local dev image](https://kubernetes.github.io/ingress-nginx/developer-guide/getting-started/#custom-docker-image) to the test cluster:
+1. Build and upload the [local dev image](https://kubernetes.github.io/ingress-nginx/developer-guide/getting-started/#custom-docker-image) to the test cluster:
 
 ```bash
 ./005_build_and_upload_image.sh
 ```
 
-Define the image in the [values.yaml](ingress-nginx/values.yaml) as follows:
+2. Configure custom image in Helm chart
+
+Update the [values.yaml](ingress-nginx/values.yaml) as follows:
 
 ```yaml
 ingress:
@@ -181,19 +190,23 @@ ingress:
 ...
 ```
 
-Redeploy the controller:
+3. Redeploy the controller
 
 ```bash
 ./002_deploy_ingress.sh
 ```
 
-Change the value of the header to `v03` in the ConfigMap [custom-security-headers-configmap.yaml](podinfo-app/templates/custom-security-headers-configmap.yaml) and redeploy the podinfo-app:
+4. Update header value
+
+Change the value of the header to `v03` in the ConfigMap [custom-security-headers-configmap.yaml](podinfo-app/templates/custom-security-headers-configmap.yaml) and redeploy the podinfo app:
 
 ```bash
 ./003_deploy_podinfo.sh
 ```
 
-The following curl command shows the new value:
+5. Verify update
+
+Run the curl command once more:
 
 ```bash
 curl -v -H "Host: podinfo.local" localhost:8001
@@ -231,3 +244,4 @@ curl -v -H "Host: podinfo.local" localhost:8001
 * Connection #0 to host localhost left intact
 }
 ```
+You should now see `X-TEST: v03` in the response headers 👆.
