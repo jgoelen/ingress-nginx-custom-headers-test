@@ -72,7 +72,7 @@ curl -v -H "Host: podinfo.local" localhost:8001
 }
 ```
 
-You should see X-TEST: v01 in the response headers 👆.
+You should see `X-TEST: v01` in the response headers 👆.
 
 # Test 2 🔥: Update Custom Header (Fails Initially)
 
@@ -168,7 +168,7 @@ curl -v -H "Host: podinfo.local" localhost:8001
 
 # Test 3 ✅: Update Custom header (with fix)
 
-1. Build and upload the [local dev image](https://kubernetes.github.io/ingress-nginx/developer-guide/getting-started/#custom-docker-image) to the test cluster:
+1. Build the image from the PR and upload it to the test cluster:
 
 ```bash
 ./005_build_and_upload_image.sh
